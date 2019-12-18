@@ -7,14 +7,13 @@ import (
 
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/util"
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
 
 var (
-	driverName     = "mysql"
-	dataSourceName = "root:mariadb@tcp(127.0.0.1:3306)/abc"
+	driverName     = "postgres"
+	dataSourceName = "postgres://casbin_adapter:adapter@127.0.0.1:5432/casbin_adapter"
 )
 
 func testGetPolicy(t *testing.T, e *casbin.Enforcer, res [][]string) {
@@ -133,11 +132,11 @@ func TestAdapters(t *testing.T) {
 	testAutoSave(t)
 }
 
-// Make sure the initial casbin_rule table exists
+// Make sure the initial casbin_rule_pg table exists
 func setupDatabase(t *testing.T) {
-	migration, err := ioutil.ReadFile("examples/casbin_rule.sql")
+	migration, err := ioutil.ReadFile("examples/casbin_rule_pg.sql")
 	if err != nil {
-		t.Fatalf("failed to load casbin_rule sql migration: %s", err)
+		t.Fatalf("failed to load casbin_rule_pg sql migration: %s", err)
 	}
 
 	db, err := sqlx.Connect(driverName, dataSourceName)
@@ -148,6 +147,6 @@ func setupDatabase(t *testing.T) {
 
 	_, err = db.Exec(string(migration))
 	if err != nil {
-		t.Fatalf("failed to run casbin_rule sql migration: %s", err)
+		t.Fatalf("failed to run casbin_rule_pg sql migration: %s", err)
 	}
 }

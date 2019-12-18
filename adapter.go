@@ -87,14 +87,14 @@ func savePolicyLine(ptype string, rule []string) CasbinRule {
 }
 
 func (a *Adapter) dropTable() {
-	_, err := a.db.Exec(fmt.Sprintf("DELETE FROM `%s`", a.tableName))
+	_, err := a.db.Exec(fmt.Sprintf("DELETE FROM %s", a.tableName))
 	if err != nil {
 		panic(err)
 	}
 }
 
 func (a *Adapter) ensureTable() {
-	_, err := a.db.Exec(fmt.Sprintf("SELECT 1 FROM `%s` LIMIT 1", a.tableName))
+	_, err := a.db.Exec(fmt.Sprintf("SELECT 1 FROM %s LIMIT 1", a.tableName))
 	if err != nil {
 		panic(err)
 	}
@@ -172,7 +172,7 @@ func NewAdapterFromOptions(opts *AdapterOptions) *Adapter {
 // LoadPolicy loads policy from database.
 func (a *Adapter) LoadPolicy(model model.Model) error {
 	var lines []CasbinRule
-	err := a.db.Select(&lines, fmt.Sprintf("SELECT * FROM `%s`", a.tableName))
+	err := a.db.Select(&lines, fmt.Sprintf("SELECT * FROM %s", a.tableName))
 	if err != nil {
 		return err
 	}
@@ -257,29 +257,36 @@ func (a *Adapter) RemoveFilteredPolicy(sec string, ptype string, fieldIndex int,
 
 func (a *Adapter) rawDelete(line *CasbinRule) (err error) {
 	queryArgs := []interface{}{line.PType}
-	query := fmt.Sprintf("DELETE FROM `%s` WHERE p_type = ?", a.tableName)
+	paramCnt := 1
+	query := fmt.Sprintf("DELETE FROM %s WHERE p_type = $%d", a.tableName, paramCnt)
 	if line.V0 != "" {
-		query += " AND v0 = ?"
+		paramCnt++
+		query += fmt.Sprintf(" AND v0 = $%d", paramCnt)
 		queryArgs = append(queryArgs, line.V0)
 	}
 	if line.V1 != "" {
-		query += " AND v1 = ?"
+		paramCnt++
+		query += fmt.Sprintf(" AND v1 = $%d", paramCnt)
 		queryArgs = append(queryArgs, line.V1)
 	}
 	if line.V2 != "" {
-		query += " AND v2 = ?"
+		paramCnt++
+		query += fmt.Sprintf(" AND v2 = $%d", paramCnt)
 		queryArgs = append(queryArgs, line.V2)
 	}
 	if line.V3 != "" {
-		query += " AND v3 = ?"
+		paramCnt++
+		query += fmt.Sprintf(" AND v3 = $%d", paramCnt)
 		queryArgs = append(queryArgs, line.V3)
 	}
 	if line.V4 != "" {
-		query += " AND v4 = ?"
+		paramCnt++
+		query += fmt.Sprintf(" AND v4 = $%d", paramCnt)
 		queryArgs = append(queryArgs, line.V4)
 	}
 	if line.V5 != "" {
-		query += " AND v5 = ?"
+		paramCnt++
+		query += fmt.Sprintf(" AND v5 = $%d", paramCnt)
 		queryArgs = append(queryArgs, line.V5)
 	}
 	_, err = a.db.Exec(query, queryArgs...)
